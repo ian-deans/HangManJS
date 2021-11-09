@@ -1,0 +1,92 @@
+* {
+ box-sizing: border-box;   
+}
+:root {
+    --black: #000;
+    --white: #fff;
+}
+
+body {
+    height: 90vh;
+    width: 100vw;
+
+    background-color: var(--black);
+    color: var(--white);
+
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 2fr 2fr 1fr;
+    grid-template-areas:
+        "header header header header"
+        "leftbar main main rightbar"
+        "leftbar main main rightbar"
+        "footer footer footer footer";
+
+    align-content: stretch;
+    justify-content: center;
+}
+
+header {
+    grid-area: header;
+    /* background-color: lightcoral; */
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#game-string {
+    letter-spacing: .5em;
+}
+
+#leftbar {
+    grid-area: leftbar;
+    /* background-color: yellow; */
+}
+
+
+#main {
+    grid-area: main;
+    /* background-color: white; */
+    font-size: 36px;
+}
+
+#rightbar {
+    grid-area: rightbar;
+    /* background-color: yellow; */
+
+    display: flex;
+    
+}
+
+#rightbar div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+footer {
+    grid-area: footer;
+    /* background-color: lightseagreen; */
+}
+
+.sidebar {
+    padding-top: 25px;
+}
+
+
+
+.flex-row {
+    display: flex;
+}
+
+.flex-col-centered {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-jbetween { justify-content: space-between; }
+.flex-jaround { justify-content: space-around; }

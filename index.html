@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="steeze.css">
+    <title>Document</title>
+
+</head>
+<body>
+    <header>
+        <h1 id="header">HangMan</h1>
+        <div>
+            Round: <span id="round"></span>
+        </div>
+       
+    </header>
+
+    <div id="leftbar" class="flex-col-centered flex-jbetween sidebar">
+        <span>Letters Already Guessed</span>
+        <span id="previous-guesses" class="flex-col-centered">
+    </div>
+
+    <main id="main" class="flex-col-centered flex-jaround"> 
+        <div id="game-string"></div>
+
+        <div id="message"></div>
+
+
+    </main>
+
+    <div id="rightbar" class="flex-col-centered flex-jaround sidebar">
+        <div>
+            <span>Guesses Remaining:</span>
+            <span id="guesses-remaining"></span>
+        </div>
+        <div>
+            <span>Wins:</span>
+            <span id="wins"></span>
+        </div>
+        <div>
+            <span>Losses:</span>
+            <span id="losses"></span>
+        </div>
+
+    </div>
+
+    <footer>
+
+    </footer>
+
+    <span id="user-guess"></span>
+
+    <!-- <script src="gameClasses.js"></script>
+    <script src="gameScript.js"></script> -->
+    <script src="Word.js"></script>
+    <script src="Game.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
