@@ -1,13 +1,13 @@
 // const Game = require( './Game' )
 // const prompt = require( './Prompt' )
-
+const word_bank = require('./assets/wordBank')
 
 const refs = buildHTMLReferences()
 // let PLAYER_INPUT_ON = false
 
+
 const config = {
-    wordBank: [ 'stuff', 'things', 'shuffle' ],
-    
+    wordBank: word_bank,
 }
 const game = new Game( {} )
 
