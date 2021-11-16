@@ -1,68 +1,44 @@
-// const { Word } = require( "./gameClasses" )
-// const prompt = require( "./Prompt" )
-
-
-const MAX_GUESSES = 6
-
-//? Maybe have the Game class take a function to print messages
-// const print = ( msg ) => console.log( msg )
+const Word = require( './Word' )
 
 class Game {
-    /**
-     * 
-     */
+
     constructor( config ) {
-
-        if ( config ) {
-            if ( config.hasOwnProperty( 'wordBank' ) ) {
-                this.WORD_BANK = config.wordBank
-            } else {
-                this.WORD_BANK = Game.DEFAULTS.WORD_BANK
-            }
-
-            if ( config.hasOwnProperty( 'maxGuesses' ) ) {
-                this.MAX_GUESSES = config.maxGuesses
-            } else {
-                this.MAX_GUESSES = Game.DEFAULTS.MAX_GUESSES
-            }
-        } else {
-            this.WORD_BANK = Game.DEFAULTS.WORD_BANK
-            this.MAX_GUESSES = Game.DEFAULTS.MAX_GUESSES
-        }
-
         this.gameData = {
             round: 0,
             wins: 0,
-            losses: 0,
         }
-
-        // this.prompt = prompt
-        this.wins = 0
-        this.losses = 0
 
         this.word = null
         this.roundData = null
 
-        this.loop = this.loop.bind( this )
+        this.configure( config )
+
         this.setup = this.setup.bind( this )
         this.getRandomWord = this.getRandomWord.bind( this )
         this.getGameData = this.getGameData.bind( this )
+    }
 
-        // this.setup()
+    configure( config ) {
+        this.MAX_GUESSES = config && config.hasOwnProperty( 'maxGuesses' )
+            ? config.maxGuesses
+            : Game.DEFAULTS.MAX_GUESSES
+
+        this.WORD_BANK = config && config.hasOwnProperty( 'wordBank ' )
+            ? config.wordBank
+            : Game.DEFAULTS.WORD_BANK
     }
 
     setup() {
-        // get a word, generate Word, (re)set game data
-        const wordRaw = this.getRandomWord()
-        this.word = new Word( wordRaw )
-        this.roundData = {
-            remainingGuesses: this.MAX_GUESSES,
-            incorrectGuesses: [],
-            message: `Alright, new game, first turn`
-        }
+        this.word = new Word( this.getRandomWord() )
+        this.roundData = this.generateRoundData()
         this.gameData.round++
+    }
 
-        print( this )
+    generateRoundData() {
+        return {
+            remainingGuesses: this.MAX_GUESSES,
+            prevGuesses: [],
+        }
     }
 
     getGameData() {
@@ -70,12 +46,11 @@ class Game {
     }
 
     getRoundData() {
-        const { incorrectGuesses, remainingGuesses, message } = this.roundData
+        const { prevGuesses, remainingGuesses } = this.roundData
         return {
-            incorrectGuesses: incorrectGuesses,
-            remainingGuesses: remainingGuesses,
+            prevGuesses,
+            remainingGuesses,
             gameString: this.word.display(),
-            message: message,
         }
     }
 
@@ -84,109 +59,93 @@ class Game {
         return this.WORD_BANK[ randomIndex ]
     }
 
-    printWordString() {
-        print( this.word.display() )
+    getDisplay() {
+        return this.word.display()
     }
 
-    // printHUD() {
-    //     // this.printWordString()
-    //     print( `
-    //     Guesses Remaining: ${ this.roundData.remainingGuesses}
-    //     Letters Guessed:  ${ this.roundData.incorrectGuesses } 
-    //             ${this.word.display()}
-    //     `)
-    // }
+    processPlayerGuess( guess ) {
+        const guessIsValid = this.validateGuess( { guess })
 
-    processPlayerGuess( val ) {
-        val.toUpperCase()
-        if ( !Game.validateGuess( val ) ) {
-            // invalid input
-            return { 
+        if ( !guessIsValid ) {
+            return {
                 success: false,
-                message: `Invalid guess, letters only please`,
-
+                data: {
+                    message: 'Invalid Guess'
+                }
             }
         }
+
+        this.addGuessToPrevious( guess )
+
+        const result = this.word.checkGuess( guess )
+
+        const { success, data: gameOver } = result
+
+        if ( success ) {
+            if ( gameOver ) {
+                this.incrementWins()
+
+                return {
+                    succes: true,
+                    data: {
+                        gameOver: true,
+                        win: true,
+                    }
+                }
+            }
+
+            return {
+                success: true,
+                data: {
+                    gameOver: false,
+                }
+            }
+        } else {
+            this.decrementPlayerGuesses()
+            
+            if ( this.playerIsOutOfGuesses() ) {
+                return {
+                    success: false,
+                    data: {
+                        gameOver: true,
+                        win: false,
+                    }
+                }
+            }
+
+            return {
+                success: false,
+                data: {
+                    gameOver: true,
+                    win: false,
+                }
+            }
+
+        }
+
     }
 
-    async loop( message = Game.messages.mainPrompt ) {
-
-        // this.printHUD()
-
-        // prompt user
-        // const playerGuess = await this.prompt( message )
-
-        // validate input
-        if ( !Game.validateGuess( playerGuess ) ) {
-            return this.loop( Game.messages.invalidGuess )
-        }
-
-        if ( this.guessAlreadyMade( playerGuess ) ) {
-            return this.loop( Game.messages.alreadyGuessed )
-        }
-
-
-        const guessWasCorrect = this.word.checkGuess( playerGuess )
-
-        //! Not clever, not happy with it
-        if ( !guessWasCorrect ) {
-            this.roundData.incorrectGuesses.push( playerGuess )
-        }
-
-        this.handleGuess( guessWasCorrect )
-
-        if ( this.isGameOver() ) {
-            return process.exit()
-        }
-
-        return this.loop()
-
-        // // check for endgame conditions
-        // if ( this.gameIsOver() ) {
-        //     return this.handleEndGame()
-        // } else {
-        //     return this.loop()
-        // }
-
-    }
-
-    addIncorrectGuess( val ) {
+    addGuessToPrevious( val ) {
         return this.roundData.incorrectGuesses.push( val )
     }
 
-    guessAlreadyMade( playerGuess ) {
-        return this.roundData.incorrectGuesses.includes( playerGuess )
+    playerIsOutOfGuesses() {
+        return this.roundData.remainingGuesses < 1
+            ? true
+            : false
     }
 
-    handleGuess( guessWasCorrect ) {
-        if ( guessWasCorrect ) {
-            print( Game.messages.correctGuess )
-        } else {
-            print( Game.messages.incorrectGuess )
-            this.roundData.remainingGuesses--
-        }
-
-
+    incrementWins() {
+        this.gameData.wins++
     }
 
-    isGameOver() {
-        if ( this.word.isSolved() ) {
-            print( `You won!` )
-            return true
-        } else if ( this.roundData.remainingGuesses < 1 ) {
-            print( `You lost!` )
-            return true
-        }
-
-        return false
+    decrementPlayerGuesses() {
+        this.roundData.remainingGuesses--
     }
-
-
-
 
     static DEFAULTS = {
         MAX_GUESSES: 6,
-        WORD_BANK: [ `globe`, `shoe`, `quantification`,`rome` ],
+        WORD_BANK: [ `globe`, `shoe`, `quantification`, `rome` ],
     }
 
     static messages = {
@@ -195,29 +154,24 @@ class Game {
         alreadyGuessed: `Yeah... you already tried that one...\n`,
         correctGuess: `Correct! I guess you are smarter than you look\n`,
         incorrectGuess: `Wrong! Be better\n`,
-
     }
 
-    static guessIsLetter( val ) {
+    validateGuess( guess ) {
         const regex = /^[A-Za-z]+$/
-        if ( !val.match( regex ) && !val.length === 1 ) {
+        const guessIsValid = guess.match( regex ) && guess.length === 1
+        
+        if ( !guessIsValid ) {
             return false
         }
-        return true
-    }
 
-    static validateGuess( val ) {
-        const regex = /^[A-Za-z]+$/
-        if ( val.match( regex ) && val.length === 1 ) {
-            return {
-                valid: true,
-                message: null,
-            }
+        const isNewGuess = !this.roundData.prevGuesses.includes( guess )
+
+        if ( !isNewGuess ) {
+            return false
         }
-        return {
-            valid: false,
-            message: Game.messages.invalidGuess,
-        }
+
+        return true
     }
 }
 
+module.exports = Game
