@@ -64,7 +64,7 @@ class Game {
     }
 
     processPlayerGuess( guess ) {
-        const guessIsValid = this.validateGuess( { guess })
+        const guessIsValid = this.validateGuess( { guess } )
 
         if ( !guessIsValid ) {
             return {
@@ -79,7 +79,8 @@ class Game {
 
         const result = this.word.checkGuess( guess )
 
-        const { success, data: gameOver } = result
+        const { success, data: { gameOver } } = result
+
 
         if ( success ) {
             if ( gameOver ) {
@@ -92,17 +93,19 @@ class Game {
                         win: true,
                     }
                 }
-            }
-
-            return {
-                success: true,
-                data: {
-                    gameOver: false,
+            } else {
+                return {
+                    success: true,
+                    data: {
+                        gameOver: false,
+                    }
                 }
             }
         } else {
             this.decrementPlayerGuesses()
-            
+
+            // console.log( 'guesses left :: ', this.playerIsOutOfGuesses() )
+
             if ( this.playerIsOutOfGuesses() ) {
                 return {
                     success: false,
@@ -116,7 +119,7 @@ class Game {
             return {
                 success: false,
                 data: {
-                    gameOver: true,
+                    gameOver: false,
                     win: false,
                 }
             }
@@ -126,10 +129,11 @@ class Game {
     }
 
     addGuessToPrevious( val ) {
-        return this.roundData.incorrectGuesses.push( val )
+        return this.roundData.prevGuesses.push( val )
     }
 
     playerIsOutOfGuesses() {
+        console.log( 'check guesses left :: ', this.roundData.remainingGuesses )
         return this.roundData.remainingGuesses < 1
             ? true
             : false
@@ -156,10 +160,19 @@ class Game {
         incorrectGuess: `Wrong! Be better\n`,
     }
 
-    validateGuess( guess ) {
-        const regex = /^[A-Za-z]+$/
+    validateGuess( val ) {
+        const regex = /[a-z]/i
+
+        const guess = val.guess
+
+        // console.log( "val :: ", guess.guess)
+
+        console.log( 'length :: ', guess.length )
+
         const guessIsValid = guess.match( regex ) && guess.length === 1
-        
+
+        console.log( 'validation :: ', guessIsValid )
+
         if ( !guessIsValid ) {
             return false
         }
